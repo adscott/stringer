@@ -24,7 +24,7 @@ class StoryRepository
   end
 
   def self.unread
-    Story.where(is_read: false).order("published desc")
+    Story.where(is_read: false).order("published asc")
   end
 
   def self.unread_since_id(since_id)
