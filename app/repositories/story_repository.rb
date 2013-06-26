@@ -33,12 +33,13 @@ class StoryRepository
   end
 
   def self.read(page = 1)
-    Story.where(is_read: true).order("published desc").page(page).per_page(15)
+    Story.where(is_read: true)
+      .order("published desc").page(page).per_page(20)
   end
 
   def self.starred(page = 1)
     Story.where(is_starred: true)
-          .order("published desc").page(page).per_page(15)
+          .order("published desc").page(page).per_page(20)
   end
 
   def self.read_count
@@ -62,7 +63,7 @@ class StoryRepository
     abs_re = URI::DEFAULT_PARSER.regexp[:ABS_URI]
 
     [["a", "href"], ["img", "src"], ["video", "src"]].each do |tag, attr|
-      doc.css(tag).each do |node|
+      doc.css("#{tag}[#{attr}]").each do |node|
         url = node.get_attribute(attr)
         unless url =~ abs_re
           node.set_attribute(attr, URI.join(base_url, url).to_s)
