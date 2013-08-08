@@ -10,6 +10,7 @@ require_relative "app/commands/stories/mark_as_unread"
 
 require_relative "app/commands/stories/mark_as_starred"
 require_relative "app/commands/stories/mark_as_unstarred"
+require_relative "app/commands/stories/mark_feed_as_read"
 require_relative "app/commands/stories/mark_group_as_read"
 
 class FeverAPI < Sinatra::Base
@@ -25,8 +26,10 @@ class FeverAPI < Sinatra::Base
   end
 
   def authenticated?(api_key)
-    user = User.first
-    user.api_key && api_key.downcase == user.api_key.downcase
+    if api_key
+      user = User.first
+      user.api_key && api_key.downcase == user.api_key.downcase
+    end
   end
 
   get "/" do
@@ -88,7 +91,8 @@ class FeverAPI < Sinatra::Base
       response[:saved_item_ids] = all_starred_stories.map{|s| s.id}.join(",")
     end
 
-    if params[:mark] == "item"
+    case params[:mark]
+    when "item"
       case params[:as]
       when "read"
         MarkAsRead.new(params[:id]).mark_as_read
@@ -99,7 +103,9 @@ class FeverAPI < Sinatra::Base
       when "unsaved"
         MarkAsUnstarred.new(params[:id]).mark_as_unstarred
       end
-    elsif params[:mark] == "group"
+    when "feed"
+      MarkFeedAsRead.new(params[:id], params[:before]).mark_feed_as_read
+    when "group"
       MarkGroupAsRead.new(params[:id], params[:before]).mark_group_as_read
     end
 
@@ -115,11 +121,11 @@ class FeverAPI < Sinatra::Base
   end
 
   def all_starred_stories
-     Story.where(is_starred: true)
+    Story.where(is_starred: true)
   end
 
   def stories_by_ids(ids)
-      StoryRepository.fetch_by_ids(ids)
+    StoryRepository.fetch_by_ids(ids)
   end
 
   def feeds
